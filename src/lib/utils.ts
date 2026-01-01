@@ -1,3 +1,10 @@
+import { clsx, type ClassValue } from "clsx"
+import { twMerge } from "tailwind-merge"
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
+}
+
 export const clamp = (x: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, x));
 
 export const round = (x: number, d = 2) => {

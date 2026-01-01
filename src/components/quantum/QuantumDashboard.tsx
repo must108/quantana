@@ -208,8 +208,7 @@ export default function QuantumDashboard() {
               <Sparkles className="h-5 w-5" />
             </div>
             <div>
-              <div className="text-lg font-semibold tracking-tight">Quantum Observability</div>
-              <div className="text-sm text-muted-foreground">System dashboard · drift flagging · alerts</div>
+              <div className="text-lg font-semibold tracking-tight">Quantana</div>
             </div>
           </div>
 
@@ -574,7 +573,7 @@ export default function QuantumDashboard() {
         <div className="mt-6 flex items-center justify-between text-xs text-muted-foreground">
           <div className="flex items-center gap-2">
             <ShieldCheck className="h-4 w-4" />
-            <span>Prototype UI · simple drift & threshold logic · replace mock stream with lab telemetry</span>
+            <span>Quantana</span>
           </div>
           <div className="tabular-nums">Last update: {latest.label}</div>
         </div>
