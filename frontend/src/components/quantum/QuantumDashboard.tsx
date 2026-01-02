@@ -51,6 +51,10 @@ export default function QuantumDashboard() {
 
   const [intensity, setIntensity] = useState(1.0);
   const [thresholds, setThresholds] = useState({ driftWarn: 1.6, driftCritical: 2.2 });
+  const [thresholdInputs, setThresholdInputs] = useState({
+    driftWarn: "1.6",
+    driftCritical: "2.2"
+  })
   const [streamStatus, setStreamStatus] = useState<"connecting" | "live" | "error">("connecting");
 
   const driftRef = useRef<DriftState | null>(null);
@@ -262,17 +266,17 @@ export default function QuantumDashboard() {
   const showLoading = !mounted || !hasData;
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-background text-foreground pb-40 md:pb-0">
       <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 dark:to-muted/10">
         <div className="mx-auto max-w-7xl px-4 py-6">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-3">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-center gap-3 md:items-center">
               <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-sm">
                 <Sparkles className="h-5 w-5" />
               </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <div className="text-lg font-semibold tracking-tight">Quantana</div>
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <div className="min-w-0 truncate text-lg font-semibold tracking-tight">Quantana</div>
                   <Badge className={"border " + streamBadgeClass(streamStatus)}>
                     {streamStatus === "live" ? "Live" : streamStatus === "connecting" ? "Connecting…" : "Stream error"}
                   </Badge>
@@ -280,18 +284,25 @@ export default function QuantumDashboard() {
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2">
-              <ThemeToggle />
-              <div className="relative">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
+            <div className="order-2 flex w-full flex-col gap-2 sm:order-1 sm:w-auto sm:flex-row sm:items-center">
+              <div className="relative w-full sm:w-64 md:w-72">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search qubits (e.g., q3)" className="w-56 pl-9 bg-background" />
+                <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search qubits (e.g., q3)" className="w-full bg-background pl-9" />
               </div>
-              <Button variant="outline" onClick={() => setPaused((p) => !p)}>
-                {paused ? "Resume" : "Pause"}
-              </Button>
-              <Button variant="outline" onClick={() => setAlerts([])}>
-                Clear Alerts
-              </Button>
+             <div className="grid grid-cols-2 gap-2 sm:flex sm:gap-2">
+               <Button variant="outline" onClick={() => setPaused((p) => !p)} className="w-full sm:w-auto">
+                 {paused ? "Resume" : "Pause"}
+               </Button>
+               <Button variant="outline" onClick={() => setAlerts([])} className="w-full sm:w-auto">
+                 Clear Alerts
+               </Button>
+             </div>
+           </div>
+
+           <div className="order-1 flex justify-end sm:order-2">
+             <ThemeToggle />
+           </div>
             </div>
           </div>
 
@@ -376,15 +387,31 @@ export default function QuantumDashboard() {
                         <div className="text-xs font-medium text-muted-foreground">Thresholds</div>
                         <div className="mt-2 grid grid-cols-2 gap-2">
                           <Input
-                            value={String(thresholds.driftWarn)}
-                            onChange={(e) => setThresholds((t) => ({ ...t, driftWarn: clamp(Number(e.target.value || 0), 0.8, 4) }))}
+                            value={thresholdInputs.driftWarn}
+                            onChange={(e) =>
+                              setThresholdInputs((s) => ({ ...s, driftWarn: e.target.value }))
+                            }
+                            onBlur={() =>
+                              setThresholds((t) => ({
+                                ...t,
+                                driftWarn: clamp(Number(thresholdInputs.driftWarn), 0.8, 4),
+                              }))
+                            }
                             className="h-8 rounded-xl text-xs bg-background"
                             placeholder="Warn"
                             inputMode="decimal"
                           />
                           <Input
-                            value={String(thresholds.driftCritical)}
-                            onChange={(e) => setThresholds((t) => ({ ...t, driftCritical: clamp(Number(e.target.value || 0), 1.0, 5) }))}
+                            value={thresholdInputs.driftCritical}
+                            onChange={(e) =>
+                              setThresholdInputs((s) => ({ ...s, driftCritical: e.target.value }))
+                            }
+                            onBlur={() =>
+                              setThresholds((t) => ({
+                                ...t,
+                                driftCritical: clamp(Number(thresholdInputs.driftCritical), 1.0, 5),
+                              }))
+                            }
                             className="h-8 rounded-xl text-xs bg-background"
                             placeholder="Crit"
                             inputMode="decimal"
