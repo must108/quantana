@@ -6,8 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Activity, Bell, Cpu, Gauge, Search, ShieldCheck, Sparkles } from "lucide-react";
+import { Activity, Bell, Cpu, Gauge, Search, ShieldCheck } from "lucide-react";
+import { Gi3dMeeple } from "react-icons/gi";
 import { ThemeToggle } from "../theme-toggle";
+import Link from "next/link";
 
 import MetricPill from "@/components/quantum/metric-pill";
 import QubitTable, { QubitRow } from "@/components/quantum/qubit-table";
@@ -272,7 +274,7 @@ export default function QuantumDashboard() {
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="flex items-center gap-3 md:items-center">
               <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-sm">
-                <Sparkles className="h-5 w-5" />
+                <Gi3dMeeple className="h-8 w-8" />
               </div>
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
@@ -286,6 +288,13 @@ export default function QuantumDashboard() {
 
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
             <div className="order-2 flex w-full flex-col gap-2 sm:order-1 sm:w-auto sm:flex-row sm:items-center">
+              <div className="relative w-full sm:w-64 md:w-72">
+                <Link href="/">
+                  <Button variant="outline" className="w-full sm:w-auto">
+                    Home
+                  </Button>
+                </Link>
+              </div>
               <div className="relative w-full sm:w-64 md:w-72">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search qubits (e.g., q3)" className="w-full bg-background pl-9" />
@@ -520,7 +529,7 @@ export default function QuantumDashboard() {
 
               <div className="mt-6 flex items-center justify-between text-xs text-muted-foreground">
                 <div className="flex items-center gap-2">
-                  <ShieldCheck className="h-4 w-4" />
+                  <Gi3dMeeple className="h-4 w-4" />
                   <span>Quantana</span>
                 </div>
                 <div className="tabular-nums">Last update: {latest.label}</div>
