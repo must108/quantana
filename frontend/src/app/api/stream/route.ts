@@ -2,7 +2,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const upstream = "http://localhost:8001/stream";
+  const upstream = process.env.NEXT_PUBLIC_API!;
 
   const res = await fetch(upstream, {
     headers: {
