@@ -57,6 +57,10 @@ export default function QuantumDashboard() {
   const [drift, setDrift] = useState(0);
   const [alerts, setAlerts] = useState<Alert[]>([]);
 
+  // global monotonic id sequence to guarantee unique keys even if ts repeats
+  const alertSeqRef = useRef(0);
+  const makeAlertId = (prefix: string, ts: number) => `${prefix}-${ts}-${alertSeqRef.current++}`;
+
   // ---- client-only seed ----
   useEffect(() => {
     setMounted(true);
@@ -123,11 +127,10 @@ export default function QuantumDashboard() {
 
       const nextAlerts: Alert[] = [];
       const tnow = p.ts;
-      const idBase = String(tnow); // stable; no Math.random
 
       if (dscore >= thresholds.driftCritical) {
         nextAlerts.push({
-          id: `crit-${idBase}`,
+          id: makeAlertId("crit", tnow),
           ts: tnow,
           severity: "critical",
           title: "Drift critical",
@@ -135,7 +138,7 @@ export default function QuantumDashboard() {
         });
       } else if (dscore >= thresholds.driftWarn) {
         nextAlerts.push({
-          id: `warn-${idBase}`,
+          id: makeAlertId("warn", tnow),
           ts: tnow,
           severity: "warn",
           title: "Drift warning",
@@ -145,7 +148,7 @@ export default function QuantumDashboard() {
 
       if (p.temp >= 0.03) {
         nextAlerts.push({
-          id: `temp-${idBase}`,
+          id: makeAlertId("temp", tnow),
           ts: tnow,
           severity: "warn",
           title: "Cryostat temperature elevated",
@@ -155,7 +158,7 @@ export default function QuantumDashboard() {
 
       if (p.vibration >= 2.0 || p.em >= 2.0) {
         nextAlerts.push({
-          id: `env-${idBase}`,
+          id: makeAlertId("env", tnow),
           ts: tnow,
           severity: p.vibration >= 2.4 || p.em >= 2.4 ? "critical" : "warn",
           title: "Environmental interference",
@@ -170,10 +173,11 @@ export default function QuantumDashboard() {
         const recent = next.slice(-12);
         const prevBlock = next.slice(-24, -12);
         const avg = (arr: Point[], k: keyof Point) => arr.reduce((acc, r) => acc + (r[k] as number), 0) / Math.max(1, arr.length);
+
         const t1Trend = avg(recent, "t1") - avg(prevBlock, "t1");
         if (recent.length >= 12 && prevBlock.length >= 12 && t1Trend < -1.4) {
           nextAlerts.push({
-            id: `pm-${idBase}`,
+            id: makeAlertId("pm", tnow),
             ts: tnow,
             severity: "info",
             title: "Predictive signal: coherence degrading",
@@ -182,7 +186,7 @@ export default function QuantumDashboard() {
         }
 
         if (nextAlerts.length) {
-          setAlerts((a) => [...nextAlerts.reverse(), ...a].slice(0, 50)); // keep more, card scrolls
+          setAlerts((a) => [...nextAlerts.reverse(), ...a].slice(0, 50));
         }
 
         return next;
@@ -255,14 +259,12 @@ export default function QuantumDashboard() {
     ];
   }, [selectedMetric]);
 
-  // --- render ---
   const showLoading = !mounted || !hasData;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 dark:to-muted/10">
         <div className="mx-auto max-w-7xl px-4 py-6">
-          {/* header */}
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-sm">
@@ -282,12 +284,7 @@ export default function QuantumDashboard() {
               <ThemeToggle />
               <div className="relative">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search qubits (e.g., q3)"
-                  className="w-56 pl-9 bg-background"
-                />
+                <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search qubits (e.g., q3)" className="w-56 pl-9 bg-background" />
               </div>
               <Button variant="outline" onClick={() => setPaused((p) => !p)}>
                 {paused ? "Resume" : "Pause"}
@@ -304,7 +301,6 @@ export default function QuantumDashboard() {
             <div className="rounded-2xl border bg-card p-6 text-sm text-muted-foreground">Loading telemetry…</div>
           ) : (
             <>
-              {/* top cards */}
               <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
                 <Card className="lg:col-span-4 rounded-2xl bg-card text-card-foreground border-border shadow-sm">
                   <CardHeader className="pb-2">
@@ -367,12 +363,7 @@ export default function QuantumDashboard() {
                           <Button size="sm" variant={intensity <= 0.85 ? "default" : "outline"} onClick={() => setIntensity(0.8)} className="rounded-xl w-full">
                             Low
                           </Button>
-                          <Button
-                            size="sm"
-                            variant={intensity > 0.85 && intensity < 1.25 ? "default" : "outline"}
-                            onClick={() => setIntensity(1.0)}
-                            className="rounded-xl w-full"
-                          >
+                          <Button size="sm" variant={intensity > 0.85 && intensity < 1.25 ? "default" : "outline"} onClick={() => setIntensity(1.0)} className="rounded-xl w-full">
                             Med
                           </Button>
                           <Button size="sm" variant={intensity >= 1.25 ? "default" : "outline"} onClick={() => setIntensity(1.4)} className="rounded-xl w-full">
@@ -416,12 +407,9 @@ export default function QuantumDashboard() {
                     </CardTitle>
                   </CardHeader>
 
-                  {/* fixed height + internal scroll */}
                   <CardContent className="space-y-2">
                     {alerts.length === 0 ? (
-                      <div className="rounded-xl border bg-muted/40 dark:bg-muted/25 p-3 text-sm text-muted-foreground">
-                        No active alerts. Monitoring telemetry in real time.
-                      </div>
+                      <div className="rounded-xl border bg-muted/40 dark:bg-muted/25 p-3 text-sm text-muted-foreground">No active alerts. Monitoring telemetry in real time.</div>
                     ) : (
                       <div className="max-h-[340px] overflow-y-auto pr-1 space-y-2">
                         {alerts.map((a) => (
@@ -439,8 +427,7 @@ export default function QuantumDashboard() {
                 </Card>
               </div>
 
-              {/* charts + controls */}
-              <div className="my-6 grid grid-cols-1 gap-4 lg:grid-cols-12">
+              <div className="my-6 grid grid-cols-1 gap-4">
                 <Card className="lg:col-span-8 rounded-2xl bg-card text-card-foreground border-border shadow-sm">
                   <CardHeader className="pb-2">
                     <CardTitle className="flex flex-wrap items-center justify-between gap-3 text-sm font-semibold text-foreground">
@@ -481,130 +468,8 @@ export default function QuantumDashboard() {
                     </div>
                   </CardContent>
                 </Card>
-
-                <Card className="lg:col-span-4 rounded-2xl bg-card text-card-foreground border-border shadow-sm">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="flex items-center justify-between text-sm font-semibold text-foreground">
-                      <span className="flex items-center gap-2 text-muted-foreground">
-                        <Activity className="h-4 w-4" /> <span className="text-foreground">Controls</span>
-                      </span>
-                      <Badge className="border bg-foreground text-background">Prototype</Badge>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="rounded-xl border bg-muted/40 dark:bg-muted/25 p-3">
-                      <div className="text-xs font-medium text-muted-foreground">Calibration Actions</div>
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="rounded-xl"
-                          onClick={() =>
-                            setAlerts((a) =>
-                              [
-                                {
-                                  id: `info-${Date.now()}`,
-                                  ts: Date.now(),
-                                  severity: "info",
-                                  title: "Recalibration queued",
-                                  detail: "Scheduled calibration job: Ramsey + RB (single/two-qubit).",
-                                },
-                                ...a,
-                              ].slice(0, 50)
-                            )
-                          }
-                        >
-                          Queue Recalibration
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="rounded-xl"
-                          onClick={() =>
-                            setAlerts((a) =>
-                              [
-                                {
-                                  id: `info2-${Date.now()}`,
-                                  ts: Date.now(),
-                                  severity: "info",
-                                  title: "Diagnostics started",
-                                  detail: "Running environment scan: vibration isolation + EM shielding check.",
-                                },
-                                ...a,
-                              ].slice(0, 50)
-                            )
-                          }
-                        >
-                          Run Diagnostics
-                        </Button>
-                      </div>
-                    </div>
-
-                    <div className="rounded-xl border bg-muted/40 dark:bg-muted/25 p-3">
-                      <div className="text-xs font-medium text-muted-foreground">Alerting</div>
-                      <div className="mt-2 grid grid-cols-2 gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="rounded-xl justify-start"
-                          onClick={() =>
-                            setAlerts((a) =>
-                              [
-                                {
-                                  id: `test-${Date.now()}`,
-                                  ts: Date.now(),
-                                  severity: "warn",
-                                  title: "Test alert",
-                                  detail: "This is a simulated warning to validate paging.",
-                                },
-                                ...a,
-                              ].slice(0, 50)
-                            )
-                          }
-                        >
-                          Send Test
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="rounded-xl justify-start"
-                          onClick={() => {
-                            driftRef.current = initDriftState(series[series.length - 1]);
-                            setAlerts((a) =>
-                              [
-                                {
-                                  id: `reset-${Date.now()}`,
-                                  ts: Date.now(),
-                                  severity: "info",
-                                  title: "Drift baseline reset",
-                                  detail: "EMA baseline reset to current telemetry snapshot.",
-                                },
-                                ...a,
-                              ].slice(0, 50)
-                            );
-                          }}
-                        >
-                          Reset Baseline
-                        </Button>
-                      </div>
-                    </div>
-
-                    <div className="rounded-xl border bg-muted/40 dark:bg-muted/25 p-3 text-xs text-muted-foreground">
-                      <div className="flex items-center gap-2 font-medium text-foreground">
-                        <Sparkles className="h-4 w-4" /> How to extend
-                      </div>
-                      <ul className="mt-2 list-disc space-y-1 pl-4">
-                        <li>Replace mock stream with API ingestion (WebSocket/SSE/Kafka).</li>
-                        <li>Persist telemetry to a time-series DB (TimescaleDB/Influx/ClickHouse).</li>
-                        <li>Add RB/Ramsey job hooks; store calibration artifacts per qubit.</li>
-                        <li>Use robust anomaly detection (seasonal-HESD, Isolation Forest, LSTM).</li>
-                      </ul>
-                    </div>
-                  </CardContent>
-                </Card>
               </div>
 
-              {/* table */}
               <Card className="rounded-2xl bg-card text-card-foreground border-border shadow-sm">
                 <CardHeader className="pb-2">
                   <CardTitle className="flex items-center justify-between text-sm font-semibold text-foreground">
