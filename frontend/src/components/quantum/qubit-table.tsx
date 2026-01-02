@@ -47,7 +47,6 @@ export default function QubitTable({ rows }: { rows: QubitRow[] }) {
 
   return (
     <div className="overflow-hidden rounded-xl border border-border bg-card text-card-foreground shadow-sm">
-      {/* focus strip */}
       <div className="flex items-center justify-between gap-2 border-b border-border bg-muted/20 px-4 py-2">
         <div className="text-xs font-semibold text-muted-foreground">
           Per-Qubit Metrics
@@ -76,10 +75,8 @@ export default function QubitTable({ rows }: { rows: QubitRow[] }) {
         </div>
       </div>
 
-      {/* scroll container */}
       <div className="max-h-[460px] overflow-auto">
         <div className="min-w-[980px]">
-          {/* header (NOT sticky anymore) */}
           <div className="grid grid-cols-12 gap-0 border-b border-border bg-muted/30 text-xs font-semibold text-muted-foreground">
             <div className="col-span-2 px-4 py-2">Qubit</div>
             <div className="col-span-2 px-4 py-2">Status</div>
@@ -91,7 +88,6 @@ export default function QubitTable({ rows }: { rows: QubitRow[] }) {
             <div className="col-span-1 px-4 py-2 text-right">Drift</div>
           </div>
 
-          {/* rows */}
           {rows.map((r) => {
             const isFocused = focusedId === r.id;
 

@@ -59,7 +59,6 @@ export default function Page() {
               </CardContent>
             </Card>
 
-            {/* Icon / Meeple */}
             <Card className="rounded-2xl bg-card text-card-foreground border-border shadow-sm">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-semibold text-foreground">

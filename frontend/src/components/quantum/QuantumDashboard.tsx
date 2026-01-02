@@ -45,7 +45,6 @@ function streamBadgeClass(streamStatus: "connecting" | "live" | "error") {
 export default function QuantumDashboard() {
   const [mounted, setMounted] = useState(false);
 
-  // start empty to avoid SSR/CSR mismatch (makeInitialSeries uses Date.now/random)
   const [series, setSeries] = useState<Point[]>([]);
   const [paused, setPaused] = useState(false);
   const [search, setSearch] = useState("");
@@ -63,11 +62,9 @@ export default function QuantumDashboard() {
   const [drift, setDrift] = useState(0);
   const [alerts, setAlerts] = useState<Alert[]>([]);
 
-  // global monotonic id sequence to guarantee unique keys even if ts repeats
   const alertSeqRef = useRef(0);
   const makeAlertId = (prefix: string, ts: number) => `${prefix}-${ts}-${alertSeqRef.current++}`;
 
-  // ---- client-only seed ----
   useEffect(() => {
     setMounted(true);
 
@@ -80,7 +77,6 @@ export default function QuantumDashboard() {
     setDrift(driftScore(ds, seed[seed.length - 1]));
   }, []);
 
-  // ---- safe fallbacks so hooks are always called ----
   const hasData = series.length > 0;
   const latest: Point = hasData
     ? series[series.length - 1]
@@ -99,7 +95,6 @@ export default function QuantumDashboard() {
 
   const health = useMemo(() => (hasData ? computeHealthScore(latest) : 0), [hasData, latest]);
 
-  // ---- stream ingestion (SSE) ----
   useEffect(() => {
     if (!mounted) return;
     if (!hasData) return;
@@ -175,7 +170,6 @@ export default function QuantumDashboard() {
       setSeries((prev) => {
         const next = [...prev.slice(-89), p];
 
-        // predictive alert
         const recent = next.slice(-12);
         const prevBlock = next.slice(-24, -12);
         const avg = (arr: Point[], k: keyof Point) => arr.reduce((acc, r) => acc + (r[k] as number), 0) / Math.max(1, arr.length);
