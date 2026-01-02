@@ -288,7 +288,7 @@ export default function QuantumDashboard() {
 
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
             <div className="order-2 flex w-full flex-col gap-2 sm:order-1 sm:w-auto sm:flex-row sm:items-center">
-              <div className="relative w-full sm:w-64 md:w-72">
+              <div>
                 <Link href="/">
                   <Button variant="outline" className="w-full sm:w-auto">
                     Home
