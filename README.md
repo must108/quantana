@@ -13,7 +13,7 @@ This project is a development tool that allows users to monitor their quantum sy
 
 Follow the steps below to start running this application locally!
 
-```
+```bash
 git clone https://github.com/must108/quantana
 
 cd backend
