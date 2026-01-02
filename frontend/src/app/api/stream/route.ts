@@ -2,27 +2,27 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const upstream = process.env.NEXT_PUBLIC_API!;
+  const upstream = process.env.API_STREAM_URL; // <-- server-only env var
+  if (!upstream) return new Response("Missing API_STREAM_URL", { status: 500 });
 
-  const res = await fetch(upstream, {
-    headers: {
-      Accept: "text/event-stream",
-      "Cache-Control": "no-cache",
-      Connection: "keep-alive",
-    },
+  const upstreamRes = await fetch(upstream, {
+    headers: { Accept: "text/event-stream" },
     cache: "no-store",
   });
 
-  if (!res.ok || !res.body) {
-    return new Response(`Upstream error: ${res.status}`, { status: 502 });
+  if (!upstreamRes.ok || !upstreamRes.body) {
+    return new Response(`Upstream error: ${upstreamRes.status}`, { status: 502 });
   }
 
-  return new Response(res.body, {
+  const { readable, writable } = new TransformStream();
+  upstreamRes.body.pipeTo(writable).catch(() => {});
+
+  return new Response(readable, {
     status: 200,
     headers: {
       "Content-Type": "text/event-stream; charset=utf-8",
       "Cache-Control": "no-cache, no-transform",
-      Connection: "keep-alive",
+      // IMPORTANT: do NOT set "Connection" manually on Vercel/Fetch responses
       "X-Accel-Buffering": "no",
     },
   });
